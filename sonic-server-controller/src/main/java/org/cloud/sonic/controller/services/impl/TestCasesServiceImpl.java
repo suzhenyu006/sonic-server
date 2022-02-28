@@ -108,7 +108,7 @@ public class TestCasesServiceImpl extends SonicServiceImpl<TestCasesMapper, Test
             Map<String, List<String>> valueMap = new HashMap<>();
             for (GlobalParams g : globalParamsList) {
                 if (g.getParamsValue().contains("|")) {
-                    List<String> shuffle = Arrays.asList(g.getParamsValue().split("|"));
+                    List<String> shuffle = Arrays.asList(g.getParamsValue().split("\\|"));
                     Collections.shuffle(shuffle);
                     valueMap.put(g.getParamsKey(), shuffle);
                 } else {
@@ -130,6 +130,9 @@ public class TestCasesServiceImpl extends SonicServiceImpl<TestCasesMapper, Test
 
     @Override
     public List<TestCases> findByIdIn(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
         return listByIds(ids);
     }
 
@@ -160,7 +163,7 @@ public class TestCasesServiceImpl extends SonicServiceImpl<TestCasesMapper, Test
 
     @Override
     public boolean deleteByProjectId(int projectId) {
-        return baseMapper.delete(new LambdaQueryWrapper<>()) > 0;
+        return baseMapper.delete(new LambdaQueryWrapper<TestCases>().eq(TestCases::getProjectId, projectId)) > 0;
     }
 
     @Override
