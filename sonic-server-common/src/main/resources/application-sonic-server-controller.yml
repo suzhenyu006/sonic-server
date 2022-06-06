@@ -1,0 +1,35 @@
+# 一般不需要动
+server:
+  port: ${SONIC_CONTROLLER_PORT:0}
+
+spring:
+  quartz:
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: SonicQuartz
+            instanceId: AUTO
+          jobStore:
+            isClustered: true
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+
+# 不要默认的定时任务可以去掉
+sonic:
+  jobs:
+    fileCron: ${FILE_CRON:0 0 12 * * ?}
+    resultCron: ${RESULT_CRON:0 0 12 * * ?}
+    dayReportCron: ${DAY_CRON:0 0 10 * * ?}
+    weekReportCron: ${WEEK_CRON:0 0 10 ? * Mon}
+    filesKeepDay: ${FILE_KEEP_DAY:60}
+    resultsKeepDay: ${RESULT_KEEP_DAY:60}
+
+robot:
+  client:
+    host: ${CLIENT_HOST:http://localhost:3000}
+  img:
+    success: "https://gitee.com/sonic-cloud/sonic-cloud/raw/master/src/assets/suc.png"
+    warning: "https://gitee.com/sonic-cloud/sonic-cloud/raw/master/src/assets/warn.png"
+    error: "https://gitee.com/sonic-cloud/sonic-cloud/raw/master/src/assets/fail.png"

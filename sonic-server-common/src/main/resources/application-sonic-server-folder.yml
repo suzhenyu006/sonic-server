@@ -1,0 +1,12 @@
+server:
+  port: ${SONIC_FOLDER_PORT:0}
+
+spring:
+  servlet:
+    multipart:
+      maxFileSize: -1
+      maxRequestSize: -1
+
+# 网关的IP地址
+gateway:
+  host: http://${SERVER_HOST:localhost}:${SONIC_GATEWAY_PORT:8094}

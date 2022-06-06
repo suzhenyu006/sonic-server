@@ -1,65 +1,77 @@
 version: '3'
 services:
-  sonic-server-eureka:
-    image: "sonicorg/sonic-server-eureka:v1.3.2-release"
-    hostname: sonic-server-eureka
-    environment:
-      - SEC_NAME=sonic #eureka用户名
-      - SEC_PASSWORD=sonic #eureka密码
-      - EUREKA_HOST=sonic-server-eureka
-    volumes:
-      - ./logs/:/logs/
+  sonic-server-zookeeper:
+    image: "zookeeper:latest"
     networks:
       - sonic-network
+    environment:
+      - ZOO_TICK_TIME=100
+      - ZOO_ADMINSERVER_ENABLED=false
     ports:
-      - "9090:9090"
-  sonic-server-bus:
-    image: "sonicorg/sonic-server-bus:v1.3.2-release"
-    environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
-    networks:
-      - sonic-network
-    volumes:
-      - ./config:/config
-      - ./logs/:/logs/
-    depends_on:
-      - sonic-server-eureka
-    restart: on-failure
+      - "${ZOOKEEPER_PORT}:2181"
   sonic-server-gateway:
-    image: "sonicorg/sonic-server-gateway:v1.3.2-release"
+    image: "registry.cn-hangzhou.aliyuncs.com/sonic-cloud/sonic-server-gateway:v1.4.0-rc"
     environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
-    networks:
-      - sonic-network
+      - SONIC_GATEWAY_PORT
+      - ZOOKEEPER_HOST
+      - ZOOKEEPER_PORT
+      - SECRET_KEY
+      - EXPIRE_DAY
     volumes:
       - ./logs/:/logs/
     depends_on:
-      - sonic-server-bus
-      - sonic-server-eureka
+      - sonic-server-zookeeper
+    networks:
+      - sonic-network
     ports:
-      - "8094:8094"
+      - "${SONIC_GATEWAY_PORT}:${SONIC_GATEWAY_PORT}"
     restart: on-failure
   sonic-server-controller:
-    image: "sonicorg/sonic-server-controller:v1.3.2-release"
+    image: "registry.cn-hangzhou.aliyuncs.com/sonic-cloud/sonic-server-controller:v1.4.0-rc"
     environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
+      - ZOOKEEPER_HOST
+      - ZOOKEEPER_PORT
+      - MYSQL_HOST
+      - MYSQL_PORT
+      - MYSQL_DATABASE
+      - MYSQL_USERNAME
+      - MYSQL_PASSWORD
+      - SERVER_HOST
+      - SONIC_GATEWAY_PORT
+      - SONIC_CONTROLLER_PORT
+      - CLIENT_HOST
+      - DUBBO_PORT
+      - SECRET_KEY
+      - EXPIRE_DAY
+      - REGISTER_ENABLE
+      - NORMAL_USER_ENABLE
+      - LDAP_USER_ENABLE
+      - LDAP_USER_ID
+      - LDAP_BASE_DN
+      - LDAP_BASE
+      - LDAP_USERNAME
+      - LDAP_PASSWORD
+      - LDAP_URL
     networks:
       - sonic-network
     volumes:
       - ./logs/:/logs/
     depends_on:
-      - sonic-server-bus
-      - sonic-server-eureka
-      - sonic-server-gateway
+      - sonic-server-zookeeper
+    ports:
+      - "${SONIC_CONTROLLER_PORT}:${SONIC_CONTROLLER_PORT}"
+      - "${DUBBO_PORT}:${DUBBO_PORT}"
     restart: on-failure
   sonic-server-folder:
-    image: "sonicorg/sonic-server-folder:v1.3.2-release"
+    image: "registry.cn-hangzhou.aliyuncs.com/sonic-cloud/sonic-server-folder:v1.4.0-rc"
     environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
+      - SERVER_HOST
+      - SONIC_GATEWAY_PORT
+      - SONIC_FOLDER_PORT
+      - ZOOKEEPER_HOST
+      - ZOOKEEPER_PORT
+      - SECRET_KEY
+      - EXPIRE_DAY
     networks:
       - sonic-network
     volumes:
@@ -69,40 +81,19 @@ services:
       - ./packageFiles/:/packageFiles/
       - ./logs/:/logs/
     depends_on:
-      - sonic-server-bus
-      - sonic-server-eureka
-      - sonic-server-gateway
+      - sonic-server-zookeeper
     restart: on-failure
-  sonic-server-task:
-    image: "sonicorg/sonic-server-task:v1.3.2-release"
-    environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
-    networks:
-      - sonic-network
-    volumes:
-      - ./logs/:/logs/
-    depends_on:
-      - sonic-server-bus
-      - sonic-server-eureka
-      - sonic-server-gateway
-    restart: on-failure
-  sonic-server-transport:
-    image: "sonicorg/sonic-server-transport:v1.3.2-release"
-    environment:
-      - PROFILE=prod
-      - EUREKA_URL=http://sonic:sonic@sonic-server-eureka:9090/eureka/
-    networks:
-      - sonic-network
-    volumes:
-      - ./logs/:/logs/
-    depends_on:
-      - sonic-server-bus
-      - sonic-server-eureka
-      - sonic-server-gateway
     ports:
-      - "8095:8095"
-    restart: on-failure
+      - "${SONIC_FOLDER_PORT}:${SONIC_FOLDER_PORT}"
+  sonic-client-web:
+    image: "registry.cn-hangzhou.aliyuncs.com/sonic-cloud/sonic-client-web:v1.4.0-rc"
+    environment:
+      - SERVER_HOST
+      - SONIC_GATEWAY_PORT
+    networks:
+      - sonic-network
+    ports:
+      - "${SONIC_CLIENT_PORT}:80"
 
 networks:
   sonic-network:

@@ -1,13 +1,29 @@
+/*
+ *  Copyright (C) [SonicCloudOrg] Sonic Project
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 package org.cloud.sonic.controller.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.common.config.WebAspect;
 import org.cloud.sonic.common.http.RespEnum;
 import org.cloud.sonic.common.http.RespModel;
-import org.cloud.sonic.controller.models.base.TypeConverter;
-import org.cloud.sonic.controller.models.domain.Agents;
-import org.cloud.sonic.controller.models.dto.AgentsDTO;
-import org.cloud.sonic.controller.services.AgentsService;
+import org.cloud.sonic.common.models.base.TypeConverter;
+import org.cloud.sonic.common.models.domain.Agents;
+import org.cloud.sonic.common.models.dto.AgentsDTO;
+import org.cloud.sonic.common.services.AgentsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +103,21 @@ public class AgentsController {
         } else {
             return new RespModel<>(RespEnum.ID_NOT_FOUND);
         }
+    }
+
+    @WebAspect
+    @ApiOperation(value = "校准agent的在线状态", notes = "等心跳中断可能有20s延迟（取决于zk配置），这个接口某些情况能更快速更新状态")
+    @GetMapping("/correction/status")
+    public RespModel<String> correctionStatus() {
+        agentsService.correctionStatus();
+        return new RespModel<>(RespEnum.HANDLE_OK);
+    }
+
+    @WebAspect
+    @ApiOperation(value = "查询机柜的Agents", notes = "获取机柜下所有Agent")
+    @GetMapping("/findByCabinet")
+    public RespModel<List<JSONObject>> findByCabinet(@RequestParam(name = "cabinetId") int cabinetId) {
+        return new RespModel<List<JSONObject>>(RespEnum.SEARCH_OK, agentsService.findByCabinetForDetail(cabinetId));
     }
 
 }
