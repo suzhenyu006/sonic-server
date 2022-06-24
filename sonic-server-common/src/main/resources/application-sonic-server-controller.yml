@@ -1,6 +1,6 @@
 # 一般不需要动
 server:
-  port: ${SONIC_CONTROLLER_PORT:0}
+  port: 0
 
 spring:
   quartz:
@@ -16,21 +16,9 @@ spring:
     jdbc:
       initialize-schema: never
 
-# 不要默认的定时任务可以去掉
-sonic:
-  netty:
-    port: ${SONIC_TRANSPORT_PORT:8095}
-  jobs:
-    fileCron: ${FILE_CRON:0 0 12 * * ?}
-    resultCron: ${RESULT_CRON:0 0 12 * * ?}
-    dayReportCron: ${DAY_CRON:0 0 10 * * ?}
-    weekReportCron: ${WEEK_CRON:0 0 10 ? * Mon}
-    filesKeepDay: ${FILE_KEEP_DAY:60}
-    resultsKeepDay: ${RESULT_KEEP_DAY:60}
-
 robot:
   client:
-    host: ${CLIENT_HOST:http://localhost:3000}
+    host: http://${SERVER_HOST:localhost}:${SERVER_PORT:3000}/server
   img:
     success: "https://gitee.com/sonic-cloud/sonic-cloud/raw/master/src/assets/suc.png"
     warning: "https://gitee.com/sonic-cloud/sonic-cloud/raw/master/src/assets/warn.png"

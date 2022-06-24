@@ -23,7 +23,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.cloud.sonic.common.http.RespEnum;
 import org.cloud.sonic.common.http.RespModel;
-import org.cloud.sonic.controller.models.domain.Agents;
 import org.cloud.sonic.controller.models.domain.Devices;
 import org.cloud.sonic.controller.models.domain.TestSuitesDevices;
 import org.cloud.sonic.controller.models.domain.Users;
@@ -31,24 +30,24 @@ import org.cloud.sonic.controller.models.http.DeviceDetailChange;
 import org.cloud.sonic.controller.models.http.UpdateDeviceImg;
 import org.cloud.sonic.controller.models.interfaces.DeviceStatus;
 import org.cloud.sonic.controller.models.params.DevicesSearchParams;
-import org.cloud.sonic.controller.netty.NettyServer;
 import org.cloud.sonic.controller.services.AgentsService;
 import org.cloud.sonic.controller.services.DevicesService;
 import org.cloud.sonic.controller.services.UsersService;
 import org.cloud.sonic.controller.mapper.DevicesMapper;
 import org.cloud.sonic.controller.mapper.TestSuitesDevicesMapper;
 import org.cloud.sonic.controller.services.impl.base.SonicServiceImpl;
+import org.cloud.sonic.controller.tools.BytesTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.websocket.Session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.cloud.sonic.common.http.RespEnum.DELETE_OK;
 
@@ -189,23 +188,6 @@ public class DevicesServiceImpl extends SonicServiceImpl<DevicesMapper, Devices>
             devices.setImgUrl("");
             devices.setTemperature(0);
             devices.setLevel(0);
-            devices.setPosition(0);
-            devices.setGear(0);
-        }
-        Integer position = jsonMsg.getInteger("position");
-        if (position != null) {
-            Devices oldPosition = lambdaQuery().eq(Devices::getAgentId, jsonMsg.getInteger("agentId"))
-                    .eq(Devices::getPosition, position).one();
-            if (oldPosition != null) {
-                oldPosition.setPosition(0);
-                save(oldPosition);
-            }
-            devices.setPosition(position);
-        } else if (devices.getAgentId() != null && devices.getAgentId() != jsonMsg.getInteger("agentId")) {
-            devices.setPosition(0);
-        }
-        if (jsonMsg.getInteger("gear") != null) {
-            devices.setGear(jsonMsg.getInteger("gear"));
         }
         devices.setAgentId(jsonMsg.getInteger("agentId"));
         if (jsonMsg.getString("name") != null) {
@@ -238,13 +220,6 @@ public class DevicesServiceImpl extends SonicServiceImpl<DevicesMapper, Devices>
             devices.setStatus(jsonMsg.getString("status"));
         }
         save(devices);
-        if (NettyServer.getMap().get(devices.getAgentId()) != null) {
-            JSONObject positionJson = new JSONObject();
-            positionJson.put("msg", "position");
-            positionJson.put("udId", devices.getUdId());
-            positionJson.put("position", devices.getPosition());
-            NettyServer.getMap().get(devices.getAgentId()).writeAndFlush(positionJson.toJSONString());
-        }
     }
 
     @Override
@@ -311,12 +286,6 @@ public class DevicesServiceImpl extends SonicServiceImpl<DevicesMapper, Devices>
             return new RespModel<>(3005, "device.not.offline");
         }
         return new RespModel<>(DELETE_OK);
-    }
-
-    @Override
-    public List<Devices> findByAgentForCabinet(int agentId) {
-        return lambdaQuery().eq(Devices::getAgentId, agentId)
-                .ne(Devices::getPosition, 0).orderByAsc(Devices::getPosition).list();
     }
 
 }

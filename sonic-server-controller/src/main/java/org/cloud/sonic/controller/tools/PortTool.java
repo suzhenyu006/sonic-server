@@ -14,24 +14,27 @@
  *  limitations under the License.
  *
  */
-package org.cloud.sonic.controller.services;
+package org.cloud.sonic.controller.tools;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import org.cloud.sonic.controller.models.domain.Cabinet;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 
-import java.util.List;
+public class PortTool {
+    public static int port = 0;
 
-/**
- * @author ZhouYiXun
- * @des Cabinet逻辑层
- * @date 2022/4/26 22:51
- */
-public interface CabinetService extends IService<Cabinet> {
-    List<Cabinet> findCabinets();
-
-    void saveCabinet(Cabinet cabinet);
-
-    Cabinet getIdByKey(String key);
-
-    void errorCall(Cabinet cabinet,String udId,int tem,int type);
+    public static Integer getPort() {
+        if (port == 0) {
+            ServerSocket serverSocket;
+            try {
+                serverSocket = new ServerSocket(0);
+                port = serverSocket.getLocalPort();
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return port;
+    }
 }

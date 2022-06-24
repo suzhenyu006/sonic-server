@@ -51,10 +51,6 @@ public class Agents implements Serializable, TypeConverter<Agents, AgentsDTO> {
     private Integer port;
 
     @TableField
-    @Column(value = "rpc_port", isNull = false, defaultValue = "0", comment = "rpc端口")
-    private Integer rpcPort;
-
-    @TableField
     @Column(value = "secret_key", comment = "agent的密钥", defaultValue = "")
     private String secretKey;
 
@@ -75,10 +71,22 @@ public class Agents implements Serializable, TypeConverter<Agents, AgentsDTO> {
     private Long lockVersion;
 
     @TableField
-    @Column(value = "cabinet_id", isNull = false, comment = "机柜Id", defaultValue = "0")
-    private Integer cabinetId;
+    @Column(value = "high_temp", isNull = false, comment = "highTemp", defaultValue = "45")
+    private Integer highTemp;
 
     @TableField
-    @Column(isNull = false, comment = "机柜层数", defaultValue = "0")
-    private Integer storey;
+    @Column(value = "high_temp_time", isNull = false, comment = "highTempTime", defaultValue = "15")
+    private Integer highTempTime;
+
+    @TableField
+    @Column(value = "robot_secret", isNull = false, comment = "机器人秘钥",defaultValue = "")
+    private String robotSecret;
+
+    @TableField
+    @Column(value = "robot_token", isNull = false, comment = "机器人token",defaultValue = "")
+    private String robotToken;
+
+    @TableField
+    @Column(value = "robot_type", isNull = false, comment = "机器人类型", defaultValue = "1")
+    private Integer robotType;
 }
